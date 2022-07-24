@@ -6,7 +6,9 @@ enable_testing()
 
 find_package(GTest)
 
-add_executable(runUnitTests test.cc)
+include_directories(${CMAKE_SOURCE_DIR}/src)
 
-target_link_libraries(runUnitTests GTest::gtest_main)
+add_executable(runUnitTests instruction_set_test.cc)
+
+target_link_libraries(runUnitTests GTest::gtest_main libnesem)
 add_test(UnitTests runUnitTests)

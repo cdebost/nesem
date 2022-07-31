@@ -1,6 +1,8 @@
 project(nesem_src)
 
-add_library(libnesem instruction_set.cc)
+include_directories(${PROJECT_SOURCE_DIR})
+
+add_library(libnesem instruction_set.cc assembler/assembler.cc assembler/scanner.cc assembler/parser.cc)
 set_target_properties(libnesem PROPERTIES PREFIX "")
 
 add_executable(nesem main.cc)

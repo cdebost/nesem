@@ -1,5 +1,7 @@
 #include "assembler/assembler.h"
 
+#include <unordered_map>
+
 #include "assembler/parser.h"
 #include "assembler/scanner.h"
 #include "instruction_set.h"
@@ -60,19 +62,39 @@ const Opcode& lookup_opcode(const Instruction& instruction) {
     throw ParseError("Invalid mnemonic " + instruction.mnemonic);
 }
 
-std::vector<uint8_t> assemble(std::string input) {
+std::vector<uint8_t> assemble(const std::string& input) {
   std::vector<uint8_t> prg_code;
   Scanner s{input};
   Program program = parse(&s);
+
+  // Pass 1: resolve labels
+  std::unordered_map<std::string, uint16_t> labels;
+  uint16_t pc = 0x8000;
+  for (const auto& instruction : program.instructions) {
+    const Opcode& opcode = lookup_opcode(instruction);
+    if (instruction.label) labels[*instruction.label] = pc;
+    pc += opcode.len;
+  }
+
+  // Pass 2: codegen
   for (const auto& instruction : program.instructions) {
     const Opcode& opcode = lookup_opcode(instruction);
     prg_code.push_back(opcode.code);
-    if (opcode.len == 2) {
-      prg_code.push_back(std::get<uint8_t>(instruction.operand->val));
-    } else if (opcode.len == 3) {
-      uint16_t val = std::get<uint16_t>(instruction.operand->val);
-      prg_code.push_back(val & 0xFF);
-      prg_code.push_back(val >> 8);
+    if (opcode.len > 1) {
+      uint16_t operand_val;
+      if (std::holds_alternative<uint8_t>(instruction.operand->val))
+        operand_val = std::get<uint8_t>(instruction.operand->val);
+      else if (std::holds_alternative<uint16_t>(instruction.operand->val))
+        operand_val = std::get<uint16_t>(instruction.operand->val);
+      else {
+        std::string ident = std::get<std::string>(instruction.operand->val);
+        if (!labels.contains(ident))
+          throw ParseError{"Label " + ident + " not found"};
+        operand_val = labels[ident];
+      }
+
+      prg_code.push_back(operand_val & 0xFF);
+      if (opcode.len == 3) prg_code.push_back(operand_val >> 8);
     }
   }
   return prg_code;

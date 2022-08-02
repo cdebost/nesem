@@ -7,7 +7,7 @@ namespace assembler {
 //
 // program = "eol"
 //         | instruction program
-// instruction = mnemonic [ operand ]
+// instruction = [label] mnemonic [ operand ]
 // operand = "#" value
 //         | value [ index ]
 //         | "(" value ")"
@@ -18,7 +18,7 @@ namespace assembler {
 
 class Parser {
  public:
-  Parser(Scanner *scanner) : scanner(scanner) {}
+  explicit Parser(Scanner *scanner) : scanner(scanner) {}
 
   Program parse();
 
@@ -47,14 +47,17 @@ Program Parser::parse() {
 }
 
 Instruction Parser::instruction() {
+  std::optional<std::string> label = std::nullopt;
+  if (auto token = scanner->accept(TokenType::kLabel))
+    label = std::get<std::string>(token->val);
   auto token = expect(TokenType::kMnemonic);
   auto mnemonic = std::get<std::string>(token.val);
   if (scanner->accept(TokenType::kEol)) {
-    return {mnemonic};
+    return {label, mnemonic};
   } else {
     auto operand = this->operand();
     expect(TokenType::kEol);
-    return {mnemonic, operand};
+    return {label, mnemonic, operand};
   }
 }
 
@@ -77,15 +80,23 @@ Operand Parser::operand() {
     }
   }
 
-  else {
-    auto token = expect(TokenType::kHex);
+  else if (auto token = scanner->accept(TokenType::kHex)) {
     if (scanner->accept(TokenType::kIndexX))
-      return {OperandType::kDirectX, token.val};
+      return {OperandType::kDirectX, token->val};
     else if (scanner->accept(TokenType::kIndexY))
-      return {OperandType::kDirectY, token.val};
+      return {OperandType::kDirectY, token->val};
     else
-      return {OperandType::kDirect, token.val};
+      return {OperandType::kDirect, token->val};
   }
+
+  else if (auto token = scanner->accept(TokenType::kIdent)) {
+    return {OperandType::kDirect, token->val};
+  }
+
+  else
+    throw ParseError(
+        "Expected an immediate operand (#), indirect operand ('('), direct "
+        "literal operand ($), or identifier");
 }
 
 Token Parser::expect(TokenType type) {

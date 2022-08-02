@@ -15,6 +15,7 @@ enum class TokenType {
   kEol,
   kMnemonic,
   kIdent,
+  kLabel,
   kPound,
   kHex,
   kIndexX,
@@ -32,6 +33,8 @@ inline std::string token_type_str(TokenType type) {
       return "mnemonic";
     case TokenType::kIdent:
       return "identifier";
+    case TokenType::kLabel:
+      return "label";
     case TokenType::kPound:
       return "#";
     case TokenType::kHex:
@@ -57,7 +60,7 @@ struct Token {
 // Tokenizes raw input
 class Scanner {
  public:
-  Scanner(std::string input);
+  explicit Scanner(const std::string &input);
 
   // Return true if there is more input to scan
   operator bool() const;

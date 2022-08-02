@@ -26,6 +26,7 @@ struct Operand {
 };
 
 struct Instruction {
+  std::optional<std::string> label;
   std::string mnemonic;
   std::optional<Operand> operand;
 };
@@ -36,7 +37,7 @@ struct Program {
 
 class ParseError : public std::exception {
  public:
-  ParseError(std::string message) : message(message) {}
+  explicit ParseError(const std::string &message) : message(message) {}
 
   const char *what() const noexcept(true) override { return message.c_str(); }
 

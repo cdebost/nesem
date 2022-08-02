@@ -75,5 +75,10 @@ TEST(AssemblerTest, assemble_multiple_instructions) {
   ASSERT_EQ(out, (std::vector<uint8_t>{0xA9, 0x05, 0xA5, 0x05}));
 }
 
+TEST(AssemblerTest, resolve_labels) {
+  auto out = assemble("JMP mylabel \n mylabel: NOP");
+  ASSERT_EQ(out, (std::vector<uint8_t>{0x4C, 0x03, 0x80, 0x1A}));
+}
+
 }  // namespace assembler
 }  // namespace nesem

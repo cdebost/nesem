@@ -18,7 +18,7 @@ static int hextoi(char c) {
   return c;
 }
 
-Scanner::Scanner(std::string input) : iss(input) {
+Scanner::Scanner(const std::string &input) : iss(input) {
   for (const auto &opcode : opcodes) {
     mnemonics.insert(opcode.mnemonic);
   }
@@ -65,10 +65,14 @@ Token Scanner::next_token() {
       }
       ident.push_back(c);
     }
-    if (mnemonics.contains(ident))
+    if (mnemonics.contains(ident)) {
       return {TokenType::kMnemonic, ident};
-    else
+    } else if (iss.peek() == ':') {
+      iss.get();
+      return {TokenType::kLabel, ident};
+    } else {
       return {TokenType::kIdent, ident};
+    }
   } else if (c == '#') {
     return {TokenType::kPound};
   } else if (c == '$') {

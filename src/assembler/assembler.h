@@ -7,7 +7,7 @@
 namespace nesem {
 namespace assembler {
 
-std::vector<uint8_t> assemble(std::string input);
+std::vector<uint8_t> assemble(const std::string &input);
 
 }
 }  // namespace nesem

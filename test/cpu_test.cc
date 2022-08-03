@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <functional>
 #include <memory>
 
 #include "assembler/assembler.h"
@@ -15,7 +16,7 @@ class CpuTest : public ::testing::Test {
   Cpu cpu;
   uint16_t prg_end = -1;
 
-  void load(const std::string &code) {
+  void load(const std::string& code) {
     std::vector<uint8_t> prg = assembler::assemble(code);
     for (int i = 0; i < prg.size(); ++i) cpu.write(0x8000 + i, prg[i]);
     cpu.write16(Cpu::kResetVector, 0x8000);
@@ -25,6 +26,12 @@ class CpuTest : public ::testing::Test {
 
   void run() {
     while (cpu.pc < prg_end) cpu.step();
+  }
+
+  size_t count_cycles(std::function<void()>&& foo) {
+    size_t start_cycles = cpu.cycles;
+    foo();
+    return cpu.cycles - start_cycles;
   }
 };
 
@@ -49,6 +56,72 @@ TEST_F(CpuTest, lda_zero_flag) {
   run();
 
   EXPECT_TRUE(cpu.flags.zero);
+}
+
+TEST_F(CpuTest, lda_immediate_timing) {
+  load("LDA #$00");
+  size_t cycles = count_cycles([this] { run(); });
+
+  ASSERT_EQ(cycles, 2);
+}
+
+TEST_F(CpuTest, lda_zeropage_timing) {
+  load("LDA $00");
+  size_t cycles = count_cycles([this] { run(); });
+
+  ASSERT_EQ(cycles, 3);
+}
+
+TEST_F(CpuTest, lda_zeropage_index_timing) {
+  load("LDA $00,X");
+  size_t cycles = count_cycles([this] { run(); });
+
+  ASSERT_EQ(cycles, 4);
+}
+
+TEST_F(CpuTest, lda_absolute_timing) {
+  load("LDA $0000");
+  size_t cycles = count_cycles([this] { run(); });
+
+  ASSERT_EQ(cycles, 4);
+}
+
+TEST_F(CpuTest, lda_absolute_indexed_timing_same_page) {
+  load("LDA $0000,X");
+  size_t cycles = count_cycles([this] { run(); });
+
+  ASSERT_EQ(cycles, 4);
+}
+
+TEST_F(CpuTest, lda_absolute_indexed_timing_cross_page) {
+  load("LDA $00FF,X");
+  cpu.x = 0x01;
+  size_t cycles = count_cycles([this] { run(); });
+
+  ASSERT_EQ(cycles, 5);
+}
+
+TEST_F(CpuTest, lda_indirect_x_timing) {
+  load("LDA ($00,X)");
+  size_t cycles = count_cycles([this] { run(); });
+
+  ASSERT_EQ(cycles, 6);
+}
+
+TEST_F(CpuTest, lda_indirect_y_timing_same_page) {
+  load("LDA ($00),Y");
+  size_t cycles = count_cycles([this] { run(); });
+
+  ASSERT_EQ(cycles, 5);
+}
+
+TEST_F(CpuTest, lda_indirect_y_timing_cross_page) {
+  load("LDA ($00),Y");
+  cpu.y = 0x01;
+  cpu.write(0x00, 0xFF);
+  size_t cycles = count_cycles([this] { run(); });
+
+  ASSERT_EQ(cycles, 6);
 }
 
 TEST_F(CpuTest, ldx) {

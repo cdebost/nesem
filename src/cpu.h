@@ -65,6 +65,8 @@ struct Cpu {
   static constexpr uint16_t kResetVector = 0xFFFC;
   static constexpr uint16_t kIrqVector = 0xFFFE;
 
+  size_t cycles = 0;
+
   Cpu() {}
   Cpu(const Cpu& c) = delete;
   ~Cpu() {}
@@ -92,7 +94,7 @@ struct Cpu {
   // based on the specified addressing mode.
   uint16_t abs_addr(AddressingMode mode, uint16_t addr) const;
 
-  uint16_t get_operand_addr(AddressingMode mode) const;
+  uint16_t get_operand_addr(AddressingMode mode);
 
   void stack_push(uint8_t val);
   uint8_t stack_pop();

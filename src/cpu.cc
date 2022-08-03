@@ -91,25 +91,40 @@ uint16_t Cpu::abs_addr(AddressingMode mode, uint16_t addr) const {
   }
 }
 
-uint16_t Cpu::get_operand_addr(AddressingMode mode) const {
+uint16_t Cpu::get_operand_addr(AddressingMode mode) {
+  uint16_t addr;
   switch (mode) {
     case AddressingMode::Immediate:
-      return pc;
+      addr = pc;
+      break;
     case AddressingMode::Zeropage:
     case AddressingMode::ZeropageX:
     case AddressingMode::ZeropageY:
     case AddressingMode::IndirectX:
     case AddressingMode::IndirectY:
-      return abs_addr(mode, read(pc));
+      addr = abs_addr(mode, read(pc));
+      if (addr > 0x00FF) {
+        // only applicable for IndirectY, which can cross a page boundary
+        ++cycles;
+      }
+      break;
 
     case AddressingMode::Absolute:
     case AddressingMode::AbsoluteX:
     case AddressingMode::AbsoluteY:
-    case AddressingMode::Indirect:
-      return abs_addr(mode, read16(pc));
+    case AddressingMode::Indirect: {
+      uint16_t operand = read16(pc);
+      addr = abs_addr(mode, operand);
+      if ((addr & 0xFF00) != (operand & 0xFF00)) {
+        // crossed page boundary
+        ++cycles;
+      }
+      break;
+    }
     default:
       assert(!"illegal mode");
   }
+  return addr;
 }
 
 void Cpu::stack_push(uint8_t val) {
@@ -622,6 +637,8 @@ void Cpu::fetch_exec() {
 
   // Don't increment pc if the instruction modified it (e.g. jmp)
   if (pc == prev_pc) pc += (opcode.len - 1);
+
+  cycles += opcode.cycles;
 }
 
 void Cpu::adc(AddressingMode mode) {

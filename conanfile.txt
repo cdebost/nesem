@@ -1,4 +1,5 @@
 [requires]
+fmt/8.1.1
 gtest/1.12.1
 
 [generators]

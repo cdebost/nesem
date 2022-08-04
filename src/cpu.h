@@ -9,6 +9,7 @@
 #include <array>
 
 #include "instruction_set.h"
+#include "mmu.h"
 
 namespace nesem {
 
@@ -67,7 +68,7 @@ struct Cpu {
 
   size_t cycles = 0;
 
-  Cpu() {}
+  Cpu(Mmu* mmu) : mmu(mmu) {}
   Cpu(const Cpu& c) = delete;
   ~Cpu() {}
 
@@ -88,7 +89,7 @@ struct Cpu {
   void reset();
 
  private:
-  std::array<uint8_t, 0xFFFF + 1> mem = {0x00};
+  Mmu* mmu;
 
   // Convert the given address into an absolute address. The behavior differs
   // based on the specified addressing mode.

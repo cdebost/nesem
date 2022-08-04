@@ -13,7 +13,8 @@ namespace nesem {
 
 class CpuTest : public ::testing::Test {
  protected:
-  Cpu cpu;
+  RamOnlyMmu mmu;
+  Cpu cpu = {&mmu};
   uint16_t prg_end = -1;
 
   void load(const std::string& code) {

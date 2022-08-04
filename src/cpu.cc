@@ -25,9 +25,9 @@ void Cpu::reset() {
   pc = read16(kResetVector);
 }
 
-uint8_t Cpu::read(uint16_t addr) const { return mem[addr]; }
+uint8_t Cpu::read(uint16_t addr) const { return mmu->read(addr); }
 
-void Cpu::write(uint16_t addr, uint8_t data) { mem[addr] = data; }
+void Cpu::write(uint16_t addr, uint8_t data) { mmu->write(addr, data); }
 
 uint16_t Cpu::read16(uint16_t addr) const {
   uint16_t lo = read(addr);

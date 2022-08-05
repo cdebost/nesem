@@ -34,7 +34,7 @@ struct CpuFlags {
   // ||+------- reserved (always on)
   // |+-------- overflow
   // +--------- negative
-  uint8_t bits() {
+  uint8_t bits() const {
     return (negative << 7) | (overflow << 6) | (1 << 5) | (brk << 4) |
            (decimal << 3) | (interrupt_disable << 2) | (zero << 1) |
            (carry << 0);

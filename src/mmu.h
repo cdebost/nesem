@@ -64,7 +64,7 @@ class NesMmu : public Mmu {
   void write(uint16_t addr, uint8_t data) override;
 
  private:
-  std::array<uint8_t, 0x800> wram;  // CPU RAM ("working ram")
+  std::array<uint8_t, 0x800> wram = {0};  // CPU RAM ("working ram")
   std::vector<uint8_t> prg;         // program code
 };
 

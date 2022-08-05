@@ -27,9 +27,6 @@ uint8_t NesMmu::read(uint16_t addr) const {
     addr -= 0x8000;
     if (addr >= prg.size()) addr %= prg.size();
     data = prg[addr];
-  } else if (addr >= 0x8000 && addr <= 0xFFFF) {
-    throw std::runtime_error(
-        fmt::format("Attempted to write to ROM at {:04X}", addr));
   } else {
     fmt::print(stderr, "Invalid read at addr {:X}\n", addr);
     data = 0;
@@ -41,6 +38,9 @@ void NesMmu::write(uint16_t addr, uint8_t data) {
   if (addr <= 0x1FFF) {
     addr = mirror_vram_addr(addr);
     wram[addr] = data;
+  } else if (addr >= 0x8000 && addr <= 0xFFFF) {
+    throw std::runtime_error(
+        fmt::format("Attempted to write to ROM at {:04X}", addr));
   } else {
     fmt::print(stderr, "Invalid write at addr {:04X}\n", addr);
   }

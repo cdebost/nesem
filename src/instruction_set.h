@@ -122,7 +122,8 @@ enum class AddressingMode {
 enum OpcodeFlag {
   kIllegalOpcode = 1,
   kUnstableOpcode = 2,
-  kHighlyUnstableOpcode = 4
+  kHighlyUnstableOpcode = 4,
+  kAddCycleIfPageBoundaryCrossed = 8
 };
 
 struct Opcode {
@@ -134,6 +135,10 @@ struct Opcode {
   uint8_t flags;   // illegal, unstable, highly unstable
 
   inline bool is_illegal() const { return flags & kIllegalOpcode; }
+
+  inline bool does_add_cycle_if_page_boundary_crossed() const {
+    return flags & kAddCycleIfPageBoundaryCrossed;
+  }
 };
 
 extern const std::vector<Opcode> opcodes;

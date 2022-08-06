@@ -68,8 +68,8 @@ struct Cpu {
 
   size_t cycles = 0;
 
-  Cpu(Mmu* mmu) : mmu(mmu) {}
-  Cpu(const Cpu& c) = delete;
+  Cpu(Mmu *mmu) : mmu(mmu) {}
+  Cpu(const Cpu &c) = delete;
   ~Cpu() {}
 
   // Read a single byte at the specified address
@@ -89,11 +89,11 @@ struct Cpu {
   void reset();
 
  private:
-  Mmu* mmu;
+  Mmu *mmu;
 
   // Read the address of the operand, resolving addressing modes.
   // PC is expected to currently be on the operand.
-  uint16_t get_operand_addr(AddressingMode mode);
+  uint16_t get_operand_addr(const Opcode &mode);
 
   void stack_push(uint8_t val);
   uint8_t stack_pop();
@@ -105,29 +105,29 @@ struct Cpu {
   // Fetch and execute the instruction under the current program counter
   void fetch_exec();
 
-  void adc(AddressingMode mode);
-  void and_(AddressingMode mode);
+  void adc(const Opcode &opcode);
+  void and_(const Opcode &opcode);
   void asl_a();
-  void asl_mem(AddressingMode mode);
-  void bit(AddressingMode mode);
+  void asl_mem(const Opcode &opcode);
+  void bit(const Opcode &opcode);
   void branch_cond(uint8_t cond);
   void brk();
-  void compare_with(AddressingMode mode, uint8_t reg);
-  void dec(AddressingMode mode);
-  void eor(AddressingMode mode);
-  void inc(AddressingMode mode);
-  void jmp(AddressingMode mode);
+  void compare_with(const Opcode &opcode, uint8_t reg);
+  void dec(const Opcode &opcode);
+  void eor(const Opcode &opcode);
+  void inc(const Opcode &opcode);
+  void jmp(const Opcode &opcode);
   void jsr();
-  void lda(AddressingMode mode);
-  void ldx(AddressingMode mode);
-  void ldy(AddressingMode mode);
+  void lda(const Opcode &opcode);
+  void ldx(const Opcode &opcode);
+  void ldy(const Opcode &opcode);
   void lsr_a();
-  void lsr_mem(AddressingMode mode);
-  void ora(AddressingMode mode);
-  void sta(AddressingMode mode);
-  void stx(AddressingMode mode);
-  void sty(AddressingMode mode);
-  void transfer_a_to(uint8_t* reg);
+  void lsr_mem(const Opcode &opcode);
+  void ora(const Opcode &opcode);
+  void sta(const Opcode &opcode);
+  void stx(const Opcode &opcode);
+  void sty(const Opcode &opcode);
+  void transfer_a_to(uint8_t *reg);
   void tax();
   void txa();
   void dex();
@@ -137,21 +137,21 @@ struct Cpu {
   void dey();
   void iny();
   void rol_a();
-  void rol_mem(AddressingMode mode);
+  void rol_mem(const Opcode &opcode);
   void ror_a();
-  void ror_mem(AddressingMode mode);
+  void ror_mem(const Opcode &opcode);
   void rti();
   void rts();
-  void sbc(AddressingMode mode);
+  void sbc(const Opcode &opcode);
   void tsx();
   void txs();
   void pha();
   void pla();
   void php();
   void plp();
-  void lax(AddressingMode mode);
-  void sax(AddressingMode mode);
-  void dcp(AddressingMode mode);
+  void lax(const Opcode &opcode);
+  void sax(const Opcode &opcode);
+  void dcp(const Opcode &opcode);
 
   void handle_nmi();
   void handle_irq();

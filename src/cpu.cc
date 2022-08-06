@@ -698,8 +698,12 @@ void Cpu::bit(AddressingMode mode) {
 void Cpu::branch_cond(uint8_t cond) {
   if (cond) {
     int8_t rel = read(pc);
-    pc += 1;
-    pc += rel;
+    ++pc;  // skip the argument
+    int16_t new_pc = pc + rel;
+    ++cycles;
+    if ((new_pc & 0xFF00) != (pc & 0xFF00))
+        ++cycles;
+    pc = new_pc;
   }
 }
 

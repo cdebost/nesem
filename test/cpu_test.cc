@@ -17,11 +17,11 @@ class CpuTest : public ::testing::Test {
   Cpu cpu = {&mmu};
   uint16_t prg_end = -1;
 
-  void load(const std::string& code) {
+  void load(const std::string& code, uint16_t start_pc = 0x8000) {
     std::vector<uint8_t> prg = assembler::assemble(code);
-    for (int i = 0; i < prg.size(); ++i) cpu.write(0x8000 + i, prg[i]);
-    cpu.write16(Cpu::kResetVector, 0x8000);
-    prg_end = 0x8000 + prg.size();
+    for (int i = 0; i < prg.size(); ++i) cpu.write(start_pc + i, prg[i]);
+    cpu.write16(Cpu::kResetVector, start_pc);
+    prg_end = start_pc + prg.size();
     cpu.reset();
   }
 
@@ -598,6 +598,31 @@ TEST_F(CpuTest, bcs_carry_clr) {
   run();
 
   EXPECT_EQ(cpu.pc, 0x8002);
+}
+
+TEST_F(CpuTest, bcs_timing_no_branch) {
+  load("BCS $01");
+  cpu.flags.carry = false;
+  size_t cycles = count_cycles([this] { run(); });
+
+  EXPECT_EQ(cycles, 2);
+}
+
+TEST_F(CpuTest, bcs_branch_same_page) {
+  // same page because the next PC without branch would be 0x8010
+  load("BCS $01", 0x80FE);
+  cpu.flags.carry = true;
+  size_t cycles = count_cycles([this] { run(); });
+
+  EXPECT_EQ(cycles, 3);
+}
+
+TEST_F(CpuTest, bcs_branch_different_page) {
+  load("BCS $01", 0x80FD);
+  cpu.flags.carry = true;
+  size_t cycles = count_cycles([this] { run(); });
+
+  EXPECT_EQ(cycles, 4);
 }
 
 // Jumps & subroutines

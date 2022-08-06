@@ -91,10 +91,8 @@ struct Cpu {
  private:
   Mmu* mmu;
 
-  // Convert the given address into an absolute address. The behavior differs
-  // based on the specified addressing mode.
-  uint16_t abs_addr(AddressingMode mode, uint16_t addr) const;
-
+  // Read the address of the operand, resolving addressing modes.
+  // PC is expected to currently be on the operand.
   uint16_t get_operand_addr(AddressingMode mode);
 
   void stack_push(uint8_t val);

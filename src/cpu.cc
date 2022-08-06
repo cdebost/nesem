@@ -42,89 +42,85 @@ void Cpu::write16(uint16_t addr, uint16_t data) {
   write(addr + 1, hi);
 }
 
-uint16_t Cpu::abs_addr(AddressingMode mode, uint16_t addr) const {
-  uint8_t lo, hi;
-  switch (mode) {
-    case AddressingMode::Zeropage:
-      lo = addr;
-      return lo;
-    case AddressingMode::ZeropageX:
-      lo = addr + x;
-      return lo;
-    case AddressingMode::ZeropageY:
-      lo = addr + y;
-      return lo;
-    case AddressingMode::Absolute:
-      return addr;
-    case AddressingMode::AbsoluteX:
-      return addr + x;
-    case AddressingMode::AbsoluteY:
-      return addr + y;
-    case AddressingMode::Relative:
-      lo = addr;
-      return (int8_t)lo + pc;
-    case AddressingMode::Indirect:
-      // Used only for indirect JMP, which is partially broken. Emulate the bug.
-      if ((addr & 0xFF) == 0xFF) {
-        lo = read(addr);
-        addr &= 0xFF00;
-        hi = read(addr);
-        return (hi << 8) | lo;
-      } else {
-        return read16(addr);
-      }
-    case AddressingMode::IndirectX:
-      hi = addr + x;
-      lo = read(hi);
-      ++hi;
-      hi = read(hi);
-      return (((uint16_t)hi) << 8) | lo;
-    case AddressingMode::IndirectY:
-      hi = addr;
-      lo = read(hi);
-      ++hi;
-      hi = read(hi);
-      addr = (((uint16_t)hi) << 8) | lo;
-      return addr + y;
-    default:
-      assert(!"mode");
-  }
-}
-
 uint16_t Cpu::get_operand_addr(AddressingMode mode) {
-  uint16_t addr;
   switch (mode) {
     case AddressingMode::Immediate:
-      addr = pc;
-      break;
+      return pc;
     case AddressingMode::Zeropage:
-    case AddressingMode::ZeropageX:
-    case AddressingMode::ZeropageY:
-    case AddressingMode::IndirectX:
-    case AddressingMode::IndirectY:
-      addr = abs_addr(mode, read(pc));
-      if (addr > 0x00FF) {
-        // only applicable for IndirectY, which can cross a page boundary
-        ++cycles;
-      }
-      break;
-
+      return read(pc);
+    case AddressingMode::ZeropageX: {
+      uint8_t addr = read(pc) + x;
+      return addr;
+    }
+    case AddressingMode::ZeropageY: {
+      uint8_t addr = read(pc) + y;
+      return addr;
+    }
     case AddressingMode::Absolute:
-    case AddressingMode::AbsoluteX:
-    case AddressingMode::AbsoluteY:
-    case AddressingMode::Indirect: {
-      uint16_t operand = read16(pc);
-      addr = abs_addr(mode, operand);
-      if ((addr & 0xFF00) != (operand & 0xFF00)) {
+      return read16(pc);
+    case AddressingMode::AbsoluteX: {
+      uint16_t base_addr = read16(pc);
+      uint16_t addr = base_addr + x;
+      if ((addr & 0xFF00) != (base_addr & 0xFF00)) {
         // crossed page boundary
         ++cycles;
       }
-      break;
+      return addr;
+    }
+    case AddressingMode::AbsoluteY: {
+      uint16_t base_addr = read16(pc);
+      uint16_t addr = base_addr + y;
+      if ((addr & 0xFF00) != (base_addr & 0xFF00)) {
+        // crossed page boundary
+        ++cycles;
+      }
+      return addr;
+    }
+    case AddressingMode::Relative: {
+      uint8_t addr = read(pc) + pc + 1;
+      return addr;
+    }
+    case AddressingMode::Indirect: {
+      uint16_t ref = read16(pc);
+      uint8_t addr_lo = read(ref);
+      uint16_t addr_hi;
+      if ((ref & 0xFF) == 0xFF)
+          // Unintuitively, indirect read wraps around the page
+          addr_hi = read(ref & 0xFF00);
+      else
+          addr_hi = read(ref + 1);
+      uint16_t addr = (addr_hi << 8) | addr_lo;
+      return addr;
+    }
+    case AddressingMode::IndirectX: {
+      // LDA ($02,X)
+      //      ---    @ pc
+      //      -----  ref
+      //     ------- addr
+      uint8_t ref = (read(pc) + x);
+      uint8_t addr_lo = read(ref);
+      uint16_t addr_hi = read((uint8_t)(ref + 1));
+      return (addr_hi << 8) | addr_lo;
+    }
+    case AddressingMode::IndirectY: {
+      // LDA ($02),Y
+      //      ---    ref
+      //     -----   base addr
+      //     ------- addr
+      uint8_t ref = read(pc);
+      uint8_t base_addr_lo = read(ref);
+      uint16_t base_addr_hi = read((uint8_t)(ref + 1));
+      uint16_t base_addr = (base_addr_hi << 8) | base_addr_lo;
+      uint16_t addr = base_addr + y;
+      if ((addr & 0xFF00) != (base_addr & 0xFF00)) {
+          // page boundary crossed
+          ++cycles;
+      }
+      return addr;
     }
     default:
       assert(!"illegal mode");
   }
-  return addr;
 }
 
 void Cpu::stack_push(uint8_t val) {

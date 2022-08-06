@@ -120,7 +120,11 @@ static std::string trace_assembly(const Cpu &cpu) {
     switch (info.mode) {
       case AddressingMode::Indirect: {
         uint8_t addr_lo = cpu.read(operand);
-        uint16_t addr_hi = cpu.read((uint8_t)(operand + 1));
+        uint16_t addr_hi;
+        if ((operand & 0xFF) == 0xFF)
+            addr_hi = cpu.read(operand & 0xFF00);
+        else
+            addr_hi = cpu.read(operand + 1);
         uint16_t addr = (addr_hi << 8) | addr_lo;
         str += fmt::format("(${:04X}) = {:04X}", operand, addr);
         break;
@@ -144,7 +148,7 @@ static std::string trace_assembly(const Cpu &cpu) {
       case AddressingMode::AbsoluteY: {
         uint16_t addr = operand + cpu.y;
         uint8_t value = cpu.read(addr);
-        str += fmt::format("${:04X},X @ {:04X} = {:02X}", operand, addr, value);
+        str += fmt::format("${:04X},Y @ {:04X} = {:02X}", operand, addr, value);
         break;
       }
       default:

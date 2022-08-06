@@ -85,10 +85,10 @@ uint16_t Cpu::get_operand_addr(AddressingMode mode) {
       uint8_t addr_lo = read(ref);
       uint16_t addr_hi;
       if ((ref & 0xFF) == 0xFF)
-          // Unintuitively, indirect read wraps around the page
-          addr_hi = read(ref & 0xFF00);
+        // Unintuitively, indirect read wraps around the page
+        addr_hi = read(ref & 0xFF00);
       else
-          addr_hi = read(ref + 1);
+        addr_hi = read(ref + 1);
       uint16_t addr = (addr_hi << 8) | addr_lo;
       return addr;
     }
@@ -113,8 +113,8 @@ uint16_t Cpu::get_operand_addr(AddressingMode mode) {
       uint16_t base_addr = (base_addr_hi << 8) | base_addr_lo;
       uint16_t addr = base_addr + y;
       if ((addr & 0xFF00) != (base_addr & 0xFF00)) {
-          // page boundary crossed
-          ++cycles;
+        // page boundary crossed
+        ++cycles;
       }
       return addr;
     }
@@ -697,8 +697,7 @@ void Cpu::branch_cond(uint8_t cond) {
     ++pc;  // skip the argument
     int16_t new_pc = pc + rel;
     ++cycles;
-    if ((new_pc & 0xFF00) != (pc & 0xFF00))
-        ++cycles;
+    if ((new_pc & 0xFF00) != (pc & 0xFF00)) ++cycles;
     pc = new_pc;
   }
 }

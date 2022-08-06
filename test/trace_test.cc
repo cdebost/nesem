@@ -8,7 +8,7 @@
 namespace nesem {
 
 class TraceTest : public ::testing::Test {
-protected:
+ protected:
   RamOnlyMmu mmu;
   Cpu cpu{&mmu};
 };
@@ -58,14 +58,14 @@ TEST_F(TraceTest, assembly) {
       "0000  A5 10     LDA $10 = 22                    A:00 X:01 Y:01 P:24 "
       "SP:FD CYC:0",
       trace_explain_state(cpu));
-  
+
   mmu.write(0x0000, 0xB5);
   mmu.write(0x0001, 0x0F);
   ASSERT_EQ(
       "0000  B5 0F     LDA $0F,X @ 10 = 22             A:00 X:01 Y:01 P:24 "
       "SP:FD CYC:0",
       trace_explain_state(cpu));
-  
+
   mmu.write(0x0000, 0xAD);
   mmu.write(0x0001, 0x10);
   mmu.write(0x0002, 0x00);
@@ -81,7 +81,7 @@ TEST_F(TraceTest, assembly) {
       "0000  BD 0F 00  LDA $000F,X @ 0010 = 22         A:00 X:01 Y:01 P:24 "
       "SP:FD CYC:0",
       trace_explain_state(cpu));
-  
+
   mmu.write(0x0000, 0xA1);
   mmu.write(0x0001, 0x0F);
   ASSERT_EQ(

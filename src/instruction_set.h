@@ -119,7 +119,11 @@ enum class AddressingMode {
   IndirectY
 };
 
-enum OpcodeFlag { kIllegalOpcode = 1, kUnstableOpcode = 2, kHighlyUnstableOpcode = 4 };
+enum OpcodeFlag {
+  kIllegalOpcode = 1,
+  kUnstableOpcode = 2,
+  kHighlyUnstableOpcode = 4
+};
 
 struct Opcode {
   uint8_t code;                // actual machine code

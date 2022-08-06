@@ -122,9 +122,9 @@ static std::string trace_assembly(const Cpu &cpu) {
         uint8_t addr_lo = cpu.read(operand);
         uint16_t addr_hi;
         if ((operand & 0xFF) == 0xFF)
-            addr_hi = cpu.read(operand & 0xFF00);
+          addr_hi = cpu.read(operand & 0xFF00);
         else
-            addr_hi = cpu.read(operand + 1);
+          addr_hi = cpu.read(operand + 1);
         uint16_t addr = (addr_hi << 8) | addr_lo;
         str += fmt::format("(${:04X}) = {:04X}", operand, addr);
         break;
@@ -163,7 +163,8 @@ std::string trace_explain_state(const Cpu &cpu) {
   std::string opcode_operands = trace_opcode_operands(cpu);
   std::string assembly = trace_assembly(cpu);
   return fmt::format(
-      "{:04X}  {:<8s} {:<32s} A:{:02X} X:{:02X} Y:{:02X} P:{:02X} SP:{:02X} CYC:{}",
+      "{:04X}  {:<8s} {:<32s} A:{:02X} X:{:02X} Y:{:02X} P:{:02X} SP:{:02X} "
+      "CYC:{}",
       cpu.pc, opcode_operands, assembly, cpu.a, cpu.x, cpu.y, cpu.flags.bits(),
       cpu.sp, cpu.cycles);
 }

@@ -65,6 +65,7 @@ class NesMmu : public Mmu {
 
  private:
   std::array<uint8_t, 0x800> wram = {0};  // CPU RAM ("working ram")
+  std::array<uint8_t, 18> apu_registers;  // TODO: dummy APU registers
   std::vector<uint8_t> prg;               // program code
 };
 

@@ -162,7 +162,7 @@ void Cpu::fetch_exec() {
   const Opcode &opcode = opcodes[opc];
   uint16_t operand_addr;
   if (opcode.mode != AddressingMode::Implied)
-      operand_addr = get_operand_addr(opcode);
+    operand_addr = get_operand_addr(opcode);
   uint16_t prev_pc = pc;
 
   switch (opc) {
@@ -741,9 +741,7 @@ void Cpu::inc(uint16_t addr) {
   update_zero_neg_flags(data);
 }
 
-void Cpu::jmp(uint16_t addr) {
-  pc = addr;
-}
+void Cpu::jmp(uint16_t addr) { pc = addr; }
 
 void Cpu::jsr() {
   uint16_t addr = read16(pc);
@@ -794,17 +792,11 @@ void Cpu::ora(uint16_t addr) {
   update_zero_neg_flags(a);
 }
 
-void Cpu::sta(uint16_t addr) {
-  write(addr, a);
-}
+void Cpu::sta(uint16_t addr) { write(addr, a); }
 
-void Cpu::stx(uint16_t addr) {
-  write(addr, x);
-}
+void Cpu::stx(uint16_t addr) { write(addr, x); }
 
-void Cpu::sty(uint16_t addr) {
-  write(addr, y);
-}
+void Cpu::sty(uint16_t addr) { write(addr, y); }
 
 void Cpu::transfer_a_to(uint8_t *reg) {
   *reg = a;

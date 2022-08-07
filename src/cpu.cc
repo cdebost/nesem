@@ -159,6 +159,9 @@ void Cpu::update_zero_neg_flags(uint8_t val) {
 void Cpu::fetch_exec() {
   uint8_t opc = read(pc++);
   const Opcode &opcode = opcodes[opc];
+  uint16_t operand_addr;
+  if (opcode.mode != AddressingMode::Implied)
+      operand_addr = get_operand_addr(opcode);
   uint16_t prev_pc = pc;
 
   switch (opc) {
@@ -174,7 +177,7 @@ void Cpu::fetch_exec() {
     case 0xB9:
     case 0xA1:
     case 0xB1:
-      lda(opcode);
+      lda(operand_addr);
       break;
 
     case 0xA2:
@@ -182,7 +185,7 @@ void Cpu::fetch_exec() {
     case 0xB6:
     case 0xAE:
     case 0xBE:
-      ldx(opcode);
+      ldx(operand_addr);
       break;
 
     case 0xA0:
@@ -190,7 +193,7 @@ void Cpu::fetch_exec() {
     case 0xB4:
     case 0xAC:
     case 0xBC:
-      ldy(opcode);
+      ldy(operand_addr);
       break;
 
     case 0x85:
@@ -200,19 +203,19 @@ void Cpu::fetch_exec() {
     case 0x99:
     case 0x81:
     case 0x91:
-      sta(opcode);
+      sta(operand_addr);
       break;
 
     case 0x86:
     case 0x96:
     case 0x8E:
-      stx(opcode);
+      stx(operand_addr);
       break;
 
     case 0x84:
     case 0x94:
     case 0x8C:
-      sty(opcode);
+      sty(operand_addr);
       break;
 
     case 0xAA:
@@ -259,7 +262,7 @@ void Cpu::fetch_exec() {
     case 0xD6:
     case 0xCE:
     case 0xDE:
-      dec(opcode);
+      dec(operand_addr);
       break;
 
     case 0xCA:
@@ -273,7 +276,7 @@ void Cpu::fetch_exec() {
     case 0xF6:
     case 0xEE:
     case 0xFE:
-      inc(opcode);
+      inc(operand_addr);
       break;
     case 0xE8:
       inx();
@@ -294,7 +297,7 @@ void Cpu::fetch_exec() {
     case 0x79:
     case 0x61:
     case 0x71:
-      adc(opcode);
+      adc(operand_addr);
       break;
 
     case 0xE9:
@@ -305,7 +308,7 @@ void Cpu::fetch_exec() {
     case 0xF9:
     case 0xE1:
     case 0xF1:
-      sbc(opcode);
+      sbc(operand_addr);
       break;
 
       /*
@@ -320,7 +323,7 @@ void Cpu::fetch_exec() {
     case 0x39:
     case 0x21:
     case 0x31:
-      and_(opcode);
+      and_(operand_addr);
       break;
 
     case 0x49:
@@ -331,7 +334,7 @@ void Cpu::fetch_exec() {
     case 0x59:
     case 0x41:
     case 0x51:
-      eor(opcode);
+      eor(operand_addr);
       break;
 
     case 0x09:
@@ -342,7 +345,7 @@ void Cpu::fetch_exec() {
     case 0x19:
     case 0x01:
     case 0x11:
-      ora(opcode);
+      ora(operand_addr);
       break;
 
       /*
@@ -356,7 +359,7 @@ void Cpu::fetch_exec() {
     case 0x16:
     case 0x0E:
     case 0x1E:
-      asl_mem(opcode);
+      asl_mem(operand_addr);
       break;
 
     case 0x4A:
@@ -366,7 +369,7 @@ void Cpu::fetch_exec() {
     case 0x56:
     case 0x4E:
     case 0x5E:
-      lsr_mem(opcode);
+      lsr_mem(operand_addr);
       break;
 
     case 0x2A:
@@ -376,7 +379,7 @@ void Cpu::fetch_exec() {
     case 0x36:
     case 0x2E:
     case 0x3E:
-      rol_mem(opcode);
+      rol_mem(operand_addr);
       break;
 
     case 0x6A:
@@ -386,7 +389,7 @@ void Cpu::fetch_exec() {
     case 0x76:
     case 0x6E:
     case 0x7E:
-      ror_mem(opcode);
+      ror_mem(operand_addr);
       break;
 
       /*
@@ -427,19 +430,19 @@ void Cpu::fetch_exec() {
     case 0xD9:
     case 0xC1:
     case 0xD1:  // CMP
-      compare_with(opcode, a);
+      compare_with(operand_addr, a);
       break;
 
     case 0xE0:
     case 0xE4:
     case 0xEC:  // CPX
-      compare_with(opcode, x);
+      compare_with(operand_addr, x);
       break;
 
     case 0xC0:
     case 0xC4:
     case 0xCC:  // CPY
-      compare_with(opcode, y);
+      compare_with(operand_addr, y);
       break;
 
       /*
@@ -477,7 +480,7 @@ void Cpu::fetch_exec() {
 
     case 0x4C:
     case 0x6C:
-      jmp(opcode);
+      jmp(operand_addr);
       break;
 
     case 0x20:
@@ -505,7 +508,7 @@ void Cpu::fetch_exec() {
 
     case 0x24:
     case 0x2C:
-      bit(opcode);
+      bit(operand_addr);
       break;
 
     case 0xEA:  // NOP
@@ -522,7 +525,7 @@ void Cpu::fetch_exec() {
     case 0xDB:
     case 0xC3:
     case 0xD3:
-      dcp(opcode);
+      dcp(operand_addr);
       break;
 
     case 0xE7:
@@ -532,8 +535,8 @@ void Cpu::fetch_exec() {
     case 0xFB:
     case 0xE3:
     case 0xF3:  // ISC
-      inc(opcode);
-      sbc(opcode);
+      inc(operand_addr);
+      sbc(operand_addr);
       break;
 
     case 0xA7:
@@ -542,7 +545,7 @@ void Cpu::fetch_exec() {
     case 0xBF:
     case 0xA3:
     case 0xB3:
-      lax(opcode);
+      lax(operand_addr);
       break;
 
     case 0x27:
@@ -552,8 +555,8 @@ void Cpu::fetch_exec() {
     case 0x3B:
     case 0x23:
     case 0x33:  // RLA
-      rol_mem(opcode);
-      and_(opcode);
+      rol_mem(operand_addr);
+      and_(operand_addr);
       break;
 
     case 0x67:
@@ -563,15 +566,15 @@ void Cpu::fetch_exec() {
     case 0x7B:
     case 0x63:
     case 0x73:  // RRA
-      ror_mem(opcode);
-      adc(opcode);
+      ror_mem(operand_addr);
+      adc(operand_addr);
       break;
 
     case 0x87:
     case 0x97:
     case 0x8F:
     case 0x83:
-      sax(opcode);
+      sax(operand_addr);
       break;
 
     case 0x07:
@@ -581,8 +584,8 @@ void Cpu::fetch_exec() {
     case 0x1B:
     case 0x03:
     case 0x13:  // SLO
-      asl_mem(opcode);
-      ora(opcode);
+      asl_mem(operand_addr);
+      ora(operand_addr);
       break;
 
     case 0x47:
@@ -592,12 +595,12 @@ void Cpu::fetch_exec() {
     case 0x5B:
     case 0x43:
     case 0x53:  // SRE
-      lsr_mem(opcode);
-      eor(opcode);
+      lsr_mem(operand_addr);
+      eor(operand_addr);
       break;
 
     case 0xEB:  // USBC (SBC + NOP)
-      sbc(opcode);
+      sbc(operand_addr);
       break;
 
     case 0x1A:
@@ -627,10 +630,6 @@ void Cpu::fetch_exec() {
     case 0x7C:
     case 0xDC:
     case 0xFC:  // NOPs (including DOP, TOP)
-      // Although NOP does nothing, it can still cause an extra cycle
-      // in certain modes if the operand crosses page boundaries.
-      // get_operand_addr will take care of this.
-      if (opcode.mode != AddressingMode::Implied) get_operand_addr(opcode);
       break;
 
     default:
@@ -644,8 +643,7 @@ void Cpu::fetch_exec() {
   cycles += opcode.cycles;
 }
 
-void Cpu::adc(const Opcode &opcode) {
-  uint16_t addr = get_operand_addr(opcode);
+void Cpu::adc(uint16_t addr) {
   uint8_t data = read(addr);
   uint16_t sum = a + data + (flags.carry ? 1 : 0);
 
@@ -659,8 +657,7 @@ void Cpu::adc(const Opcode &opcode) {
   update_zero_neg_flags(a);
 }
 
-void Cpu::and_(const Opcode &opcode) {
-  uint16_t addr = get_operand_addr(opcode);
+void Cpu::and_(uint16_t addr) {
   uint8_t val = read(addr);
   a &= val;
   update_zero_neg_flags(a);
@@ -677,8 +674,7 @@ void Cpu::asl_a() {
   update_zero_neg_flags(a);
 }
 
-void Cpu::asl_mem(const Opcode &opcode) {
-  uint16_t addr = get_operand_addr(opcode);
+void Cpu::asl_mem(uint16_t addr) {
   uint16_t data = read(addr);
 
   data <<= 1;
@@ -689,8 +685,7 @@ void Cpu::asl_mem(const Opcode &opcode) {
   update_zero_neg_flags(data);
 }
 
-void Cpu::bit(const Opcode &opcode) {
-  uint16_t addr = get_operand_addr(opcode);
+void Cpu::bit(uint16_t addr) {
   uint16_t data = read(addr);
 
   flags.negative = data & 0b10000000;
@@ -716,8 +711,7 @@ void Cpu::brk() {
   pc = read16(0xFFFE);
 }
 
-void Cpu::compare_with(const Opcode &opcode, uint8_t reg) {
-  uint16_t addr = get_operand_addr(opcode);
+void Cpu::compare_with(uint16_t addr, uint8_t reg) {
   uint8_t data = read(addr);
 
   flags.carry = (data <= reg);
@@ -726,31 +720,27 @@ void Cpu::compare_with(const Opcode &opcode, uint8_t reg) {
   update_zero_neg_flags(sub);
 }
 
-void Cpu::dec(const Opcode &opcode) {
-  uint16_t addr = get_operand_addr(opcode);
+void Cpu::dec(uint16_t addr) {
   uint8_t data = read(addr);
   --data;
   write(addr, data);
   update_zero_neg_flags(data);
 }
 
-void Cpu::eor(const Opcode &opcode) {
-  uint16_t addr = get_operand_addr(opcode);
+void Cpu::eor(uint16_t addr) {
   uint8_t data = read(addr);
   a ^= data;
   update_zero_neg_flags(a);
 }
 
-void Cpu::inc(const Opcode &opcode) {
-  uint16_t addr = get_operand_addr(opcode);
+void Cpu::inc(uint16_t addr) {
   uint8_t data = read(addr);
   ++data;
   write(addr, data);
   update_zero_neg_flags(data);
 }
 
-void Cpu::jmp(const Opcode &opcode) {
-  uint16_t addr = get_operand_addr(opcode);
+void Cpu::jmp(uint16_t addr) {
   pc = addr;
 }
 
@@ -760,22 +750,19 @@ void Cpu::jsr() {
   pc = addr;
 }
 
-void Cpu::lda(const Opcode &opcode) {
-  uint16_t addr = get_operand_addr(opcode);
+void Cpu::lda(uint16_t addr) {
   uint8_t val = read(addr);
   a = val;
   update_zero_neg_flags(a);
 }
 
-void Cpu::ldx(const Opcode &opcode) {
-  uint16_t addr = get_operand_addr(opcode);
+void Cpu::ldx(uint16_t addr) {
   uint8_t val = read(addr);
   x = val;
   update_zero_neg_flags(x);
 }
 
-void Cpu::ldy(const Opcode &opcode) {
-  uint16_t addr = get_operand_addr(opcode);
+void Cpu::ldy(uint16_t addr) {
   uint8_t val = read(addr);
   y = val;
   update_zero_neg_flags(y);
@@ -789,8 +776,7 @@ void Cpu::lsr_a() {
   update_zero_neg_flags(a);
 }
 
-void Cpu::lsr_mem(const Opcode &opcode) {
-  uint16_t addr = get_operand_addr(opcode);
+void Cpu::lsr_mem(uint16_t addr) {
   uint8_t data = read(addr);
 
   flags.carry = data & 0b1;
@@ -801,25 +787,21 @@ void Cpu::lsr_mem(const Opcode &opcode) {
   update_zero_neg_flags(data);
 }
 
-void Cpu::ora(const Opcode &opcode) {
-  uint16_t addr = get_operand_addr(opcode);
+void Cpu::ora(uint16_t addr) {
   uint8_t data = read(addr);
   a |= data;
   update_zero_neg_flags(a);
 }
 
-void Cpu::sta(const Opcode &opcode) {
-  uint16_t addr = get_operand_addr(opcode);
+void Cpu::sta(uint16_t addr) {
   write(addr, a);
 }
 
-void Cpu::stx(const Opcode &opcode) {
-  uint16_t addr = get_operand_addr(opcode);
+void Cpu::stx(uint16_t addr) {
   write(addr, x);
 }
 
-void Cpu::sty(const Opcode &opcode) {
-  uint16_t addr = get_operand_addr(opcode);
+void Cpu::sty(uint16_t addr) {
   write(addr, y);
 }
 
@@ -876,8 +858,7 @@ void Cpu::rol_a() {
   flags.carry = (c != 0);
 }
 
-void Cpu::rol_mem(const Opcode &opcode) {
-  uint16_t addr = get_operand_addr(opcode);
+void Cpu::rol_mem(uint16_t addr) {
   uint8_t data = read(addr);
   uint8_t c = data & 0b10000000;
   data <<= 1;
@@ -895,8 +876,7 @@ void Cpu::ror_a() {
   flags.carry = (c != 0);
 }
 
-void Cpu::ror_mem(const Opcode &opcode) {
-  uint16_t addr = get_operand_addr(opcode);
+void Cpu::ror_mem(uint16_t addr) {
   uint8_t data = read(addr);
   uint8_t c = data & 0b1;
   data >>= 1;
@@ -924,8 +904,7 @@ void Cpu::rts() {
 }
 
 // result is reduced by one if the srflag is **CLEAR**
-void Cpu::sbc(const Opcode &opcode) {
-  uint16_t addr = get_operand_addr(opcode);
+void Cpu::sbc(uint16_t addr) {
   uint8_t data = read(addr);
   // turn into 1s complement (subtract 1 if no carry)
   data = ~data;
@@ -973,26 +952,23 @@ void Cpu::plp() {
   flags.carry = saved_flag_bits & 0b00000001;
 }
 
-void Cpu::lax(const Opcode &opcode) {
-  uint16_t addr = get_operand_addr(opcode);
+void Cpu::lax(uint16_t addr) {
   uint8_t data = read(addr);
   a = data;
   x = data;
   update_zero_neg_flags(a);
 }
 
-void Cpu::sax(const Opcode &opcode) {
-  uint16_t addr = get_operand_addr(opcode);
+void Cpu::sax(uint16_t addr) {
   uint8_t data = a & x;
   write(addr, data);
 }
 
-void Cpu::dcp(const Opcode &opcode) {
-  uint16_t addr = get_operand_addr(opcode);
+void Cpu::dcp(uint16_t addr) {
   uint8_t data = read(addr);
   --data;
   write(addr, data);
-  compare_with(opcode, a);
+  compare_with(addr, a);
 }
 
 void Cpu::handle_nmi() {

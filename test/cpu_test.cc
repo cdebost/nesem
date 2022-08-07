@@ -600,6 +600,14 @@ TEST_F(CpuTest, bcs_carry_clr) {
   EXPECT_EQ(cpu.pc, 0x8002);
 }
 
+TEST_F(CpuTest, bcs_negative) {
+  load("BCS $FD");  // -3
+  cpu.flags.carry = true;
+  cpu.step();
+
+  EXPECT_EQ(cpu.pc, 0x7FFF);
+}
+
 TEST_F(CpuTest, bcs_timing_no_branch) {
   load("BCS $01");
   cpu.flags.carry = false;

@@ -86,7 +86,7 @@ static std::string trace_assembly(const Cpu &cpu) {
       }
       case AddressingMode::Relative: {
         // Add 2 to account for the length of the instruction
-        uint16_t addr = cpu.pc + operand + 2;
+        uint16_t addr = cpu.pc + (int8_t)operand + 2;
         str += fmt::format("${:04X}", addr);
         break;
       }

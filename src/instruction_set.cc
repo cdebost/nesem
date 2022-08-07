@@ -282,7 +282,7 @@ const std::vector<Opcode> opcodes = {
     {0xF1, "SBC", AddressingMode::IndirectY, 2, 5,
      kAddCycleIfPageBoundaryCrossed},
     {0xF2, "JAM", AddressingMode::Immediate, 1, 0, kIllegalOpcode},
-    {0xF3, "ISB", AddressingMode::IndirectY, 2, 4, kIllegalOpcode},
+    {0xF3, "ISB", AddressingMode::IndirectY, 2, 8, kIllegalOpcode},
     {0xF4, "NOP", AddressingMode::ZeropageX, 2, 4, kIllegalOpcode},
     {0xF5, "SBC", AddressingMode::ZeropageX, 2, 4},
     {0xF6, "INC", AddressingMode::ZeropageX, 2, 6},

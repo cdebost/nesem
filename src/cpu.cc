@@ -23,6 +23,7 @@ void Cpu::reset() {
   sp = 0xFD;
   flags.interrupt_disable = true;
   pc = read16(kResetVector);
+  cycles += 7;
 }
 
 uint8_t Cpu::read(uint16_t addr) const { return mmu->read(addr); }

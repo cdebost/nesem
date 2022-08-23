@@ -3,6 +3,7 @@
 #include <fmt/core.h>
 
 #include "cpu.h"
+#include "nes.h"
 
 namespace nesem {
 
@@ -159,14 +160,15 @@ static std::string trace_assembly(const Cpu &cpu) {
   return str;
 }
 
-std::string trace_explain_state(const Cpu &cpu) {
+std::string trace_explain_state(const Nes &nes) {
+  const Cpu &cpu = nes.cpu;
   std::string opcode_operands = trace_opcode_operands(cpu);
   std::string assembly = trace_assembly(cpu);
   return fmt::format(
       "{:04X}  {:<8s} {:<32s} A:{:02X} X:{:02X} Y:{:02X} P:{:02X} SP:{:02X} "
-      "CYC:{}",
+      "PPU:{:3d},{:3d} CYC:{}",
       cpu.pc, opcode_operands, assembly, cpu.a, cpu.x, cpu.y, cpu.flags.bits(),
-      cpu.sp, cpu.cycles);
+      cpu.sp, nes.mmu.ppu.scanline, nes.mmu.ppu.cycle, cpu.cycles);
 }
 
 }  // namespace nesem

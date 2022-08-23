@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "cartridge.h"
+#include "ppu.h"
 
 namespace nesem {
 
@@ -14,6 +15,11 @@ class Mmu {
 
   // Read a single byte at the specified address
   virtual uint8_t read(uint16_t addr) const = 0;
+
+  // Read a single byte at the specified address
+  virtual uint8_t read(uint16_t addr) {
+    return const_cast<const Mmu *>(this)->read(addr);
+  }
 
   // Write a single byte at the specified address
   virtual void write(uint16_t addr, uint8_t data) = 0;
@@ -57,14 +63,16 @@ class RamOnlyMmu : public Mmu {
 // 0x0000 -----------------
 class NesMmu : public Mmu {
  public:
+  NesMmu() {}
   NesMmu(const Cartridge &c);
 
   uint8_t read(uint16_t addr) const override;
+  uint8_t read(uint16_t addr) override;
 
   void write(uint16_t addr, uint8_t data) override;
 
- private:
   std::array<uint8_t, 0x800> wram = {0};  // CPU RAM ("working ram")
+  Ppu ppu;
   std::array<uint8_t, 18> apu_registers;  // TODO: dummy APU registers
   std::vector<uint8_t> prg;               // program code
 };

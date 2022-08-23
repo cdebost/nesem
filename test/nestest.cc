@@ -6,11 +6,12 @@
 #include "cartridge.h"
 #include "cpu.h"
 #include "mmu.h"
+#include "nes.h"
 #include "trace.h"
 
 const std::filesystem::path kTestDir{TEST_DIR};
 const std::filesystem::path kNestestPath = kTestDir / "nestest.nes";
-const std::filesystem::path kExpectedPath = kTestDir / "nestest_noppu.log";
+const std::filesystem::path kExpectedPath = kTestDir / "nestest.log";
 const std::filesystem::path kActualPath = kTestDir / "nestest_actual.log";
 
 nesem::Cartridge load_nestest_cartridge() {
@@ -28,21 +29,20 @@ nesem::Cartridge load_nestest_cartridge() {
 
 void trace_nestest(std::ostream *output) {
   nesem::Cartridge cartridge = load_nestest_cartridge();
-  nesem::NesMmu mmu{cartridge};
-  nesem::Cpu cpu{&mmu};
-  cpu.reset();
+  nesem::Nes nes{cartridge};
+  nes.reset();
 
   // Special state for this test
-  cpu.pc = 0xC000;
-  cpu.write(0x4004, 0xFF);
-  cpu.write(0x4005, 0xFF);
-  cpu.write(0x4006, 0xFF);
-  cpu.write(0x4007, 0xFF);
-  cpu.write(0x4015, 0xFF);
+  nes.cpu.pc = 0xC000;
+  nes.cpu.write(0x4004, 0xFF);
+  nes.cpu.write(0x4005, 0xFF);
+  nes.cpu.write(0x4006, 0xFF);
+  nes.cpu.write(0x4007, 0xFF);
+  nes.cpu.write(0x4015, 0xFF);
 
   for (int i = 0; i < 8991; ++i) {
-    *output << nesem::trace_explain_state(cpu) << "\n";
-    cpu.step();
+    *output << nesem::trace_explain_state(nes) << "\n";
+    nes.step();
   }
 }
 
@@ -73,7 +73,6 @@ void verify_match(std::istream *expected, std::istream *actual) {
 
 int main() {
   try {
-    nesem::Cartridge cartridge = load_nestest_cartridge();
     std::fstream expected{kExpectedPath};
     std::fstream actual{kActualPath, std::fstream::out | std::fstream::in};
 

@@ -16,7 +16,7 @@ static inline uint16_t mirror_wram_addr(uint16_t addr) {
   return addr;
 }
 
-NesMmu::NesMmu(const Cartridge &c) : prg(c.prg) {}
+NesMmu::NesMmu(const Cartridge &c) : prg(c.prg), ppu(c) {}
 
 uint8_t NesMmu::read(uint16_t addr) const {
   uint8_t data;
@@ -24,6 +24,30 @@ uint8_t NesMmu::read(uint16_t addr) const {
     // WRAM
     addr = mirror_wram_addr(addr);
     data = wram[addr];
+  } else if ((addr >= 0x4000 && addr <= 0x4013) || (addr == 0x4015) ||
+             (addr == 0x4017)) {
+    // APU registers
+    data = apu_registers[addr - 0x4000];
+  } else if (addr >= 0x8000 && addr <= 0xFFFF) {
+    // PRG ROM
+    addr -= 0x8000;
+    if (addr >= prg.size()) addr %= prg.size();
+    data = prg[addr];
+  } else {
+    data = 0;
+  }
+  return data;
+}
+
+uint8_t NesMmu::read(uint16_t addr) {
+  uint8_t data;
+  if (addr <= 0x1FFF) {
+    // WRAM
+    addr = mirror_wram_addr(addr);
+    data = wram[addr];
+  } else if (addr <= 0x3FFF) {
+    addr &= 0x2007;
+    data = ppu.read(addr);
   } else if ((addr >= 0x4000 && addr <= 0x4013) || (addr == 0x4015) ||
              (addr == 0x4017)) {
     // APU registers

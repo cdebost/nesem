@@ -8,7 +8,7 @@ include_directories(${CMAKE_SOURCE_DIR}/src)
 
 # unit tests
 
-add_executable(unittests instruction_set_test.cc assembler_test.cc cpu_test.cc ines_test.cc mmu_test.cc trace_test.cc)
+add_executable(unittests instruction_set_test.cc assembler_test.cc cpu_test.cc ines_test.cc mmu_test.cc trace_test.cc ppu_test.cc)
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nestest.nes ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
 target_compile_definitions(unittests PRIVATE TEST_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\")

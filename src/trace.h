@@ -1,6 +1,7 @@
 #pragma once
 
 #include "cpu.h"
+#include "nes.h"
 
 namespace nesem {
 
@@ -12,6 +13,6 @@ namespace nesem {
 // - <asm> is the assembly representation of the current instruction and its
 // operands.
 // - <addr info> varies based on the addressing mode of the instruction
-std::string trace_explain_state(const Cpu &cpu);
+std::string trace_explain_state(const Nes &nes);
 
 }  // namespace nesem

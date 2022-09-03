@@ -969,6 +969,7 @@ void Cpu::handle_nmi() {
   stack_push(flags.bits());
   flags.interrupt_disable = true;
   pc = read16(0xFFFA);
+  cycles += 2;
 }
 
 void Cpu::handle_irq() {

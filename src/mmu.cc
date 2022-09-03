@@ -69,6 +69,10 @@ void NesMmu::write(uint16_t addr, uint8_t data) {
     // WRAM
     addr = mirror_wram_addr(addr);
     wram[addr] = data;
+  } else if (addr <= 0x3FFF) {
+    addr &= 0x2007;
+    ppu.write(addr, data);
+  } else if (addr == 0x4014) {
   } else if ((addr >= 0x4000 && addr <= 0x4013) || (addr == 0x4015) ||
              (addr == 0x4017)) {
     // APU registers

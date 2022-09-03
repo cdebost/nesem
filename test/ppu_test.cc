@@ -7,6 +7,8 @@ namespace nesem {
 class PpuTest : public ::testing::Test {
  protected:
   Ppu ppu;
+
+  PpuTest() { ppu.chr.insert(ppu.chr.begin(), 8 * 1024, 0); }
 };
 
 TEST_F(PpuTest, write_ctrl) {
@@ -32,6 +34,13 @@ TEST_F(PpuTest, write_mask_fills_databus) {
 TEST_F(PpuTest, read_status_open_bus) {
   ppu.write(0x2000, 0xFF);  // fill io databus
   EXPECT_EQ(ppu.read(0x2002) & 0b11111, 0b11111);
+}
+
+TEST_F(PpuTest, read_status_clears_vblank_status) {
+  ppu.tick(341 * 241);
+  EXPECT_EQ(ppu.status(), 1 << 7);
+  ppu.read(0x2002);
+  EXPECT_EQ(ppu.status(), 0);
 }
 
 TEST_F(PpuTest, read_oam) {

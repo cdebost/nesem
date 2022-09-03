@@ -36,6 +36,7 @@ uint8_t Ppu::read(uint16_t addr) {
   switch (addr) {
     case 0x2002:  // status
       io_databus = status();
+      in_vblank = false;
       addr_latch.reset();
       break;
     case 0x2004:  // oam data
@@ -106,14 +107,52 @@ void Ppu::tick(size_t cycles) {
   cycle += cycles;
   while (cycle >= 341) {
     cycle -= 341;
+    if (scanline <= 239) draw_scanline();
     ++scanline;
     if (scanline == 241) {
+      if (ctrl & (1 << 7)) nmi_pending = true;
       in_vblank = true;
     } else if (scanline >= 262) {
       in_vblank = false;
       scanline = 0;
     }
   }
+}
+
+void Ppu::draw_scanline() {
+  uint16_t bank_start = ((ctrl >> 4) & 0b1) * 0x1000;
+  uint16_t tile_row = scanline / 8;
+
+  for (int tile_col = 0; tile_col < kTilesPerScanline; ++tile_col) {
+    uint16_t nametable_index = tile_row * kTilesPerScanline + tile_col;
+    uint8_t pattern_index = vram[nametable_index];
+
+    uint16_t begin = bank_start + pattern_index * 16;
+    uint8_t upper = chr[begin + (scanline % kTileHeight)];
+    uint8_t lower = chr[begin + (scanline % kTileHeight) + kTileHeight];
+
+    for (int8_t x = 7; x >= 0; --x) {
+      uint8_t value = (1 & lower) << 1 | (1 & upper);
+      assert(value <= 3);
+      upper >>= 1;
+      lower >>= 1;
+      uint8_t color;
+      if (value == 0)
+        color = palettes[0];
+      else
+        color = palettes[bg_palette_start_idx(tile_row, tile_col) + value];
+      frame[tile_col * 8 + x + scanline * kDisplayWidth] = color;
+    }
+  }
+}
+
+uint8_t Ppu::bg_palette_start_idx(uint16_t tile_row, uint16_t tile_col) const {
+  uint16_t attr_table_offset = tile_row / 4 * 8 + tile_col / 4;
+  uint8_t attr = vram[0x3C0 + attr_table_offset];
+  if ((tile_col % 4 / 2) >= 1) attr >>= 2;
+  if ((tile_row % 4 / 2) >= 1) attr >>= 4;
+  attr &= 0b11;
+  return attr * 4;
 }
 
 };  // namespace nesem

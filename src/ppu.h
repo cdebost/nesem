@@ -6,11 +6,17 @@
 
 namespace nesem {
 
+constexpr size_t kDisplayWidth = 256;
+constexpr size_t kDisplayHeight = 240;
+constexpr uint8_t kTileWidth = 8;
+constexpr uint8_t kTileHeight = 8;
+constexpr size_t kTilesPerScanline = kDisplayWidth / kTileWidth;
+
 struct PpuAddressLatch {
   uint8_t hi = 0;
   uint8_t lo = 0;
 
-  uint16_t read() const { return ((uint16_t)hi << 8) | lo; }
+  uint16_t read() const { return (((uint16_t)hi) << 8) | lo; }
 
   void write(uint8_t val) {
     hi = lo;
@@ -35,6 +41,9 @@ struct Ppu {
   std::array<uint8_t, 2048> vram = {0};  // video ram (external to the PPU)
   std::array<uint8_t, 32> palettes;      // internal storage for colors
   std::array<uint8_t, 256> oam;          // internal storage for sprites
+
+  // indices into the system color palette for the current frame
+  std::array<uint8_t, kDisplayWidth * kDisplayHeight> frame;
 
   // The current scanline being rendered. 262 scanlines are rendered per frame.
   // Each scanline lasts for 341 PPU clock cycles, each cycle producing one
@@ -98,6 +107,8 @@ struct Ppu {
 
   // Address of OAM memory to access
   uint8_t oam_addr = 0;
+
+  bool nmi_pending = false;
 
   Ppu() {}
   explicit Ppu(const Cartridge &cartridge);
@@ -170,6 +181,9 @@ struct Ppu {
 
   // Used by the scroll and address registers
   PpuAddressLatch addr_latch;
+
+  void draw_scanline();
+  uint8_t bg_palette_start_idx(uint16_t tile_row, uint16_t tile_col) const;
 };
 
 };  // namespace nesem

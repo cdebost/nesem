@@ -73,6 +73,8 @@ void NesMmu::write(uint16_t addr, uint8_t data) {
     addr &= 0x2007;
     ppu.write(addr, data);
   } else if (addr == 0x4014) {
+    uint16_t hi = data << 8;
+    ppu.oam_dma(&wram[hi]);
   } else if ((addr >= 0x4000 && addr <= 0x4013) || (addr == 0x4015) ||
              (addr == 0x4017)) {
     // APU registers

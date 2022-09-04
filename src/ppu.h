@@ -38,9 +38,9 @@ struct PpuAddressLatch {
 struct Ppu {
   std::vector<uint8_t> chr;  // graphics data (external to the PPU)
   ScreenMirroring mirroring = ScreenMirroring::Vertical;
-  std::array<uint8_t, 2048> vram = {0};  // video ram (external to the PPU)
-  std::array<uint8_t, 32> palettes;      // internal storage for colors
-  std::array<uint8_t, 256> oam;          // internal storage for sprites
+  std::array<uint8_t, 2048> vram = {0};    // video ram (external to the PPU)
+  std::array<uint8_t, 32> palettes = {0};  // internal storage for colors
+  std::array<uint8_t, 256> oam = {0};      // internal storage for sprites
 
   // indices into the system color palette for the current frame
   std::array<uint8_t, kDisplayWidth * kDisplayHeight> frame;
@@ -161,6 +161,9 @@ struct Ppu {
   // the bits, as will writing to any other register.
   void write(uint16_t addr, uint8_t data);
 
+  // Transfer a page (255 bytes) of data.
+  void oam_dma(uint8_t *data);
+
   void tick(size_t cycles);
 
  private:
@@ -182,8 +185,13 @@ struct Ppu {
   // Used by the scroll and address registers
   PpuAddressLatch addr_latch;
 
+  void frame_set(size_t x, size_t y, uint8_t color);
+
   void draw_scanline();
   uint8_t bg_palette_start_idx(uint16_t tile_row, uint16_t tile_col) const;
+
+  void draw_sprites();
+  uint8_t sprite_palette_start_idx(uint8_t data_byte) const;
 };
 
 };  // namespace nesem

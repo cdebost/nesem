@@ -52,6 +52,8 @@ uint8_t NesMmu::read(uint16_t addr) {
              (addr == 0x4017)) {
     // APU registers
     data = apu_registers[addr - 0x4000];
+  } else if (addr == 0x4016) {
+      data = gamepad.read();
   } else if (addr >= 0x8000 && addr <= 0xFFFF) {
     // PRG ROM
     addr -= 0x8000;
@@ -79,6 +81,11 @@ void NesMmu::write(uint16_t addr, uint8_t data) {
              (addr == 0x4017)) {
     // APU registers
     apu_registers[addr - 0x4000] = data;
+  } else if (addr == 0x4016) {
+      if (data >> 7)
+          gamepad.strobe_on();
+      else
+          gamepad.strobe_off();
   } else if (addr >= 0x8000 && addr <= 0xFFFF) {
     // PRG ROM
     throw std::runtime_error(

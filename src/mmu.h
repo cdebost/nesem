@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "cartridge.h"
+#include "gamepad.h"
 #include "ppu.h"
 
 namespace nesem {
@@ -74,6 +75,7 @@ class NesMmu : public Mmu {
   std::array<uint8_t, 0x800> wram = {0};  // CPU RAM ("working ram")
   Ppu ppu;
   std::array<uint8_t, 18> apu_registers;  // TODO: dummy APU registers
+  Gamepad gamepad;
   std::vector<uint8_t> prg;               // program code
 };
 

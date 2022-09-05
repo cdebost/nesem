@@ -61,6 +61,60 @@ int main(int argc, char **argv) {
         switch (e.type) {
           case SDL_QUIT:
             exit(0);
+          case SDL_KEYDOWN:
+            switch (e.key.keysym.sym) {
+                case SDLK_ESCAPE:
+                    exit(0);
+                case SDLK_a:
+                    nes.mmu.gamepad.btn_a = true;
+                    break;
+                case SDLK_b:
+                    nes.mmu.gamepad.btn_b = true;
+                    break;
+                case SDLK_RETURN:
+                    nes.mmu.gamepad.btn_start = true;
+                    break;
+                case SDLK_UP:
+                    nes.mmu.gamepad.btn_up = true;
+                    break;
+                case SDLK_DOWN:
+                    nes.mmu.gamepad.btn_down = true;
+                    break;
+                case SDLK_LEFT:
+                    nes.mmu.gamepad.btn_left = true;
+                    break;
+                case SDLK_RIGHT:
+                    nes.mmu.gamepad.btn_right = true;
+                    break;
+            }
+            break;
+          case SDL_KEYUP:
+            switch (e.key.keysym.sym) {
+                case SDLK_ESCAPE:
+                    exit(0);
+                case SDLK_a:
+                    nes.mmu.gamepad.btn_a = false;
+                    break;
+                case SDLK_b:
+                    nes.mmu.gamepad.btn_b = false;
+                    break;
+                case SDLK_RETURN:
+                    nes.mmu.gamepad.btn_start = false;
+                    break;
+                case SDLK_UP:
+                    nes.mmu.gamepad.btn_up = false;
+                    break;
+                case SDLK_DOWN:
+                    nes.mmu.gamepad.btn_down = false;
+                    break;
+                case SDLK_LEFT:
+                    nes.mmu.gamepad.btn_left = false;
+                    break;
+                case SDLK_RIGHT:
+                    nes.mmu.gamepad.btn_right = false;
+                    break;
+            }
+            break;
         }
       }
     }
